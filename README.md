@@ -17,7 +17,21 @@ index.php   página pública da VSL
 
 1. Crie um banco MySQL no cPanel.
 2. Crie um usuário do banco e vincule ao banco com todas as permissões.
-3. Edite `includes/config.php`:
+3. Crie `includes/config.local.php` com suas credenciais locais:
+
+   ```php
+   <?php
+   define('BASE_URL', 'https://seudominio.com');
+   define('DB_HOST', 'localhost');
+   define('DB_NAME', 'nome_do_banco');
+   define('DB_USER', 'usuario_do_banco');
+   define('DB_PASS', 'senha_do_banco');
+   define('SUPERFUNCIONARIO_TOKEN', 'seu_token');
+   ```
+
+   O arquivo `config.local.php` é ignorado pelo Git. Use `includes/config.php` apenas para defaults versionados.
+
+4. Configure, por variável de ambiente ou no `config.local.php`:
    - `BASE_URL`
    - `DB_HOST`
    - `DB_NAME`
@@ -25,9 +39,9 @@ index.php   página pública da VSL
    - `DB_PASS`
    - `SUPERFUNCIONARIO_TOKEN`, token da API do SuperFuncionário
    - `SUPERFUNCIONARIO_BASE_URL`, se precisar sobrescrever a URL padrão da API
-4. Importe `install/database.sql` pelo phpMyAdmin.
-5. Acesse `/install/install.php`, gere um hash para sua senha admin e substitua `ADMIN_PASS_HASH` em `includes/config.php`.
-6. Remova ou bloqueie a pasta `install` após configurar.
+5. Importe `install/database.sql` pelo phpMyAdmin.
+6. Acesse `/install/install.php`, gere um hash para sua senha admin e defina `ADMIN_PASS_HASH` no `config.local.php`.
+7. Remova ou bloqueie a pasta `install` após configurar.
 
 Usuário padrão inicial: `admin`  
 Senha padrão inicial: `admin123`

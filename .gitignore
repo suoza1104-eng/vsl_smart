@@ -3,5 +3,6 @@ Thumbs.db
 *.log
 *.zip
 .env
+includes/config.local.php
 vendor/
 node_modules/
