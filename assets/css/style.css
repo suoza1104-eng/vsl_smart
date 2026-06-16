@@ -370,6 +370,28 @@ h2 {
     padding: 24px;
 }
 
+.bonus-icon,
+.check-list li > svg {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    color: #111;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 0 24px rgba(255, 196, 0, 0.28);
+}
+
+.bonus-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+}
+
+.bonus-icon svg {
+    width: 21px;
+    height: 21px;
+}
+
 .feature-grid h3,
 .module-grid h3,
 .bonus-grid h3 {
@@ -428,24 +450,21 @@ h2 {
     padding: 0;
     margin: 22px 0;
     display: grid;
-    gap: 13px;
+    gap: 12px;
 }
 
 .check-list li {
-    position: relative;
-    padding-left: 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
 }
 
-.check-list li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 5px;
-    width: 15px;
-    height: 15px;
+.check-list li > svg {
+    width: 22px;
+    height: 22px;
+    padding: 4px;
     border-radius: 999px;
-    border: 2px solid var(--gold);
-    background: radial-gradient(circle, var(--gold) 35%, transparent 42%);
+    margin-top: 1px;
 }
 
 .italic {

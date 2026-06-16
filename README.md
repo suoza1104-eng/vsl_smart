@@ -23,8 +23,8 @@ index.php   página pública da VSL
    - `DB_NAME`
    - `DB_USER`
    - `DB_PASS`
-   - `SUPERFUNCIONARIO_WEBHOOK_URL`, se for usar webhook
-   - `SUPERFUNCIONARIO_TOKEN`, se o webhook exigir token
+   - `SUPERFUNCIONARIO_TOKEN`, token da API do SuperFuncionário
+   - `SUPERFUNCIONARIO_BASE_URL`, se precisar sobrescrever a URL padrão da API
 4. Importe `install/database.sql` pelo phpMyAdmin.
 5. Acesse `/install/install.php`, gere um hash para sua senha admin e substitua `ADMIN_PASS_HASH` em `includes/config.php`.
 6. Remova ou bloqueie a pasta `install` após configurar.
@@ -58,9 +58,10 @@ No painel, em **Vídeo VSL vTurb**, cole uma das opções:
 
 A página pública renderiza o valor salvo em `settings.vturb_embed`.
 
-## Webhook SuperFuncionário
+## Integração SuperFuncionário
 
-Quando um lead é cadastrado, o sistema salva o lead e tenta enviar um webhook com:
+Toda a comunicação com o SuperFuncionário fica centralizada em `includes/superfuncionario.php`.
+Quando um lead é cadastrado, o sistema salva o lead e tenta sincronizar o contato com:
 
 - Dados do lead.
 - Visitante.
@@ -68,8 +69,27 @@ Quando um lead é cadastrado, o sistema salva o lead e tenta enviar um webhook c
 - Oferta vista.
 - UTM.
 - Data de criação.
+- Tags como `novo-cadastro`, `lead` e `produto-{nome}`.
+- Campos personalizados como `user_id`, `telefone`, `produto`, `data_cadastro`, `origem`, `ultimo_evento` e `ultima_sincronizacao`.
 
-Mesmo se o webhook falhar, o lead permanece salvo. A tentativa aparece em `webhook_logs` e no painel.
+Mesmo se o SuperFuncionário falhar ou estiver fora do ar, o lead permanece salvo. A tentativa aparece em `webhook_logs` e no painel.
+
+Configuração por variáveis de ambiente:
+
+```txt
+SUPERFUNCIONARIO_BASE_URL=https://app.superfuncionario.com.br/api
+SUPERFUNCIONARIO_TOKEN=...
+SUPERFUNCIONARIO_TIMEOUT=10
+SUPERFUNCIONARIO_CONNECT_TIMEOUT=4
+```
+
+Conforme a Swagger oficial, a autenticação usa o header `X-ACCESS-TOKEN`. O serviço cria contatos em `POST /contacts`, busca existentes por `GET /contacts/find_by_custom_field`, aplica tags por `POST /contacts/{contact_id}/tags/{tag_id}` e campos por `POST /contacts/{contact_id}/custom_fields/{custom_field_id}`.
+
+Para novos eventos do sistema, importe `includes/superfuncionario.php` e chame:
+
+```php
+sf_sync_contact_event(SF_EVENT_PAYMENT_APPROVED, $contact, $context);
+```
 
 ## Observações de produção
 
@@ -77,4 +97,3 @@ Mesmo se o webhook falhar, o lead permanece salvo. A tentativa aparece em `webho
 - Remova `/install` após a instalação.
 - Mantenha PHP 8.1+ com extensão PDO MySQL e cURL habilitadas.
 - O Chart.js é carregado via CDN somente no admin.
-

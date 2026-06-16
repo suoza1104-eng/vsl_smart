@@ -439,7 +439,7 @@ $chartData = [
         </section>
 
         <section class="panel">
-            <h2>Logs de webhook</h2>
+            <h2>Logs SuperFuncionário</h2>
             <div class="table-wrap">
                 <table>
                     <thead><tr><th>Data</th><th>Lead</th><th>Status</th><th>Sucesso</th><th>Resposta</th></tr></thead>

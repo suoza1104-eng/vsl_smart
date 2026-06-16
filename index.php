@@ -152,11 +152,11 @@ $installmentPrice = money_br($offer['installment_price'] ?? 19.70);
                     <h2>Imagine ter <mark>segurança total</mark> para montar um quadro elétrico corretamente...</h2>
                     <p>Imagine entender com clareza:</p>
                     <ul class="check-list">
-                        <li>Os componentes do QDC</li>
-                        <li>O diagrama unifilar</li>
-                        <li>O dimensionamento básico</li>
-                        <li>As normas aplicadas</li>
-                        <li>A montagem prática passo a passo</li>
+                        <li><i data-lucide="circle-check"></i> Os componentes do QDC</li>
+                        <li><i data-lucide="route"></i> O diagrama unifilar</li>
+                        <li><i data-lucide="ruler"></i> O dimensionamento básico</li>
+                        <li><i data-lucide="clipboard-check"></i> As normas aplicadas</li>
+                        <li><i data-lucide="list-checks"></i> A montagem prática passo a passo</li>
                     </ul>
                     <p class="italic">E finalmente sentir confiança para executar serviços elétricos e cobrar por eles.</p>
                 </div>
@@ -248,12 +248,12 @@ $installmentPrice = money_br($offer['installment_price'] ?? 19.70);
                     <p>Mais de <strong>R$ 1.182</strong> em bônus inclusos sem custo adicional para os primeiros alunos.</p>
                 </div>
                 <div class="bonus-grid">
-                    <article><em>Grátis hoje</em><h3>Aula Ao Vivo - Dimensionamento</h3><p>Aprenda ao vivo como dimensionar corretamente cabos e disjuntores.</p><span>De R$ 297 · Incluso</span></article>
-                    <article><em>Grátis hoje</em><h3>Modelo de Orçamento Profissional</h3><p>Apresente serviços de forma profissional e feche mais clientes.</p><span>De R$ 147 · Incluso</span></article>
-                    <article><em>Grátis hoje</em><h3>Lista Completa de Materiais para QDC</h3><p>Saiba exatamente quais materiais utilizar em cada montagem.</p><span>De R$ 97 · Incluso</span></article>
-                    <article><em>Grátis hoje</em><h3>E-book - Montagem de Quadros Elétricos</h3><p>Material complementar para reforçar seu aprendizado.</p><span>De R$ 197 · Incluso</span></article>
-                    <article><em>Grátis hoje</em><h3>Grupo Exclusivo de Alunos</h3><p>Troque experiências, tire dúvidas e evolua junto com outros alunos.</p><span>De R$ 247 · Incluso</span></article>
-                    <article><em>Grátis hoje</em><h3>Suporte Especializado</h3><p>Receba suporte direto para esclarecer dúvidas técnicas.</p><span>De R$ 197 · Incluso</span></article>
+                    <article><div class="bonus-icon"><i data-lucide="radio"></i></div><em>Grátis hoje</em><h3>Aula Ao Vivo - Dimensionamento</h3><p>Aprenda ao vivo como dimensionar corretamente cabos e disjuntores.</p><span>De R$ 297 · Incluso</span></article>
+                    <article><div class="bonus-icon"><i data-lucide="file-pen-line"></i></div><em>Grátis hoje</em><h3>Modelo de Orçamento Profissional</h3><p>Apresente serviços de forma profissional e feche mais clientes.</p><span>De R$ 147 · Incluso</span></article>
+                    <article><div class="bonus-icon"><i data-lucide="clipboard-list"></i></div><em>Grátis hoje</em><h3>Lista Completa de Materiais para QDC</h3><p>Saiba exatamente quais materiais utilizar em cada montagem.</p><span>De R$ 97 · Incluso</span></article>
+                    <article><div class="bonus-icon"><i data-lucide="book-marked"></i></div><em>Grátis hoje</em><h3>E-book - Montagem de Quadros Elétricos</h3><p>Material complementar para reforçar seu aprendizado.</p><span>De R$ 197 · Incluso</span></article>
+                    <article><div class="bonus-icon"><i data-lucide="messages-square"></i></div><em>Grátis hoje</em><h3>Grupo Exclusivo de Alunos</h3><p>Troque experiências, tire dúvidas e evolua junto com outros alunos.</p><span>De R$ 247 · Incluso</span></article>
+                    <article><div class="bonus-icon"><i data-lucide="headphones"></i></div><em>Grátis hoje</em><h3>Suporte Especializado</h3><p>Receba suporte direto para esclarecer dúvidas técnicas.</p><span>De R$ 197 · Incluso</span></article>
                 </div>
             </div>
         </section>
@@ -292,11 +292,11 @@ $installmentPrice = money_br($offer['installment_price'] ?? 19.70);
                     <div class="receive-card">
                         <h3><i data-lucide="sparkles"></i> Tudo que você recebe ao entrar hoje</h3>
                         <ul class="check-list">
-                            <li>Curso completo do zero à montagem prática de quadros</li>
-                            <li>Certificado de conclusão</li>
-                            <li>Aula ao vivo e material complementar</li>
-                            <li>Grupo de alunos e suporte especializado</li>
-                            <li>Garantia de 7 dias</li>
+                            <li><i data-lucide="graduation-cap"></i> Curso completo do zero à montagem prática de quadros</li>
+                            <li><i data-lucide="award"></i> Certificado de conclusão</li>
+                            <li><i data-lucide="video"></i> Aula ao vivo e material complementar</li>
+                            <li><i data-lucide="users"></i> Grupo de alunos e suporte especializado</li>
+                            <li><i data-lucide="shield-check"></i> Garantia de 7 dias</li>
                         </ul>
                     </div>
                     <aside class="price-card">
