@@ -126,9 +126,37 @@ button {
     grid-template-columns: repeat(5, minmax(130px, 1fr));
 }
 
+.sf-map-form {
+    grid-template-columns: 1fr 1.4fr 1.4fr 120px 180px;
+}
+
 .stack-form {
     display: grid;
     gap: 12px;
+}
+
+.settings-block {
+    display: grid;
+    gap: 14px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+}
+
+.settings-block h3 {
+    margin: 0;
+}
+
+.test-form,
+.map-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.row-edit-form {
+    display: contents;
 }
 
 label {
@@ -283,4 +311,3 @@ th {
         flex-direction: column;
     }
 }
-

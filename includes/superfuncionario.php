@@ -112,23 +112,115 @@ function sf_build_contact_payload(array $contact): array
 
 function sf_build_custom_fields(array $context): array
 {
-    $fields = [
-        SF_FIELD_USER_ID => $context['user_id'] ?? $context['lead_id'] ?? null,
-        SF_FIELD_CPF => $context['cpf'] ?? null,
-        SF_FIELD_PHONE => sf_normalize_phone((string)($context['telefone'] ?? $context['phone'] ?? '')),
-        SF_FIELD_SUBSCRIPTION_STATUS => $context['status_assinatura'] ?? null,
-        SF_FIELD_PAYMENT_STATUS => $context['status_pagamento'] ?? null,
-        SF_FIELD_PLAN => $context['plano'] ?? null,
-        SF_FIELD_PRODUCT => $context['produto'] ?? $context['offer_name'] ?? null,
-        SF_FIELD_REGISTRATION_DATE => $context['data_cadastro'] ?? $context['created_at'] ?? null,
-        SF_FIELD_PURCHASE_DATE => $context['data_compra'] ?? null,
-        SF_FIELD_EXPIRATION_DATE => $context['data_expiracao'] ?? null,
-        SF_FIELD_SOURCE => $context['origem'] ?? $context['utm_source'] ?? null,
-        SF_FIELD_LAST_EVENT => $context['ultimo_evento'] ?? $context['event'] ?? null,
-        SF_FIELD_LAST_SYNC => date('Y-m-d H:i:s'),
-    ];
+    $event = (string)($context['event'] ?? SF_EVENT_LEAD_CREATED);
+    $fields = [];
+    foreach (sf_field_mappings() as $mapping) {
+        if (empty($mapping['is_active']) || ($mapping['event'] ?? '') !== $event) {
+            continue;
+        }
+
+        $field = trim((string)($mapping['target_field'] ?? ''));
+        $value = sf_context_value((string)($mapping['source_key'] ?? ''), $context);
+        if ($field !== '' && $value !== null && $value !== '') {
+            $fields[$field] = $value;
+        }
+    }
 
     return array_filter($fields, static fn($value): bool => $value !== null && $value !== '');
+}
+
+function sf_source_options(): array
+{
+    return [
+        'lead_id' => 'ID do lead',
+        'name' => 'Nome',
+        'email' => 'Email',
+        'phone' => 'Telefone',
+        'cpf' => 'CPF',
+        'visitor_uuid' => 'ID do visitante',
+        'headline_id' => 'ID da headline',
+        'headline_title' => 'Título da headline',
+        'offer_id' => 'ID da oferta',
+        'offer_name' => 'Nome da oferta/produto',
+        'offer_link' => 'Link da oferta',
+        'cash_price' => 'Preço à vista',
+        'installments_qty' => 'Quantidade de parcelas',
+        'installment_price' => 'Valor da parcela',
+        'status_assinatura' => 'Status da assinatura',
+        'status_pagamento' => 'Status do pagamento',
+        'plano' => 'Plano',
+        'produto' => 'Produto',
+        'data_cadastro' => 'Data do cadastro',
+        'data_compra' => 'Data da compra',
+        'data_expiracao' => 'Data de expiração',
+        'origem' => 'Origem',
+        'utm_source' => 'UTM source',
+        'utm_medium' => 'UTM medium',
+        'utm_campaign' => 'UTM campaign',
+        'utm_content' => 'UTM content',
+        'utm_term' => 'UTM term',
+        'ultimo_evento' => 'Último evento',
+        'ultima_sincronizacao' => 'Última sincronização',
+    ];
+}
+
+function sf_default_field_mappings(): array
+{
+    return [
+        ['id' => 'default_user_id', 'event' => SF_EVENT_LEAD_CREATED, 'source_key' => 'lead_id', 'target_field' => SF_FIELD_USER_ID, 'is_active' => true],
+        ['id' => 'default_phone', 'event' => SF_EVENT_LEAD_CREATED, 'source_key' => 'phone', 'target_field' => SF_FIELD_PHONE, 'is_active' => true],
+        ['id' => 'default_product', 'event' => SF_EVENT_LEAD_CREATED, 'source_key' => 'offer_name', 'target_field' => SF_FIELD_PRODUCT, 'is_active' => true],
+        ['id' => 'default_registration_date', 'event' => SF_EVENT_LEAD_CREATED, 'source_key' => 'data_cadastro', 'target_field' => SF_FIELD_REGISTRATION_DATE, 'is_active' => true],
+        ['id' => 'default_source', 'event' => SF_EVENT_LEAD_CREATED, 'source_key' => 'origem', 'target_field' => SF_FIELD_SOURCE, 'is_active' => true],
+        ['id' => 'default_last_event', 'event' => SF_EVENT_LEAD_CREATED, 'source_key' => 'ultimo_evento', 'target_field' => SF_FIELD_LAST_EVENT, 'is_active' => true],
+        ['id' => 'default_last_sync', 'event' => SF_EVENT_LEAD_CREATED, 'source_key' => 'ultima_sincronizacao', 'target_field' => SF_FIELD_LAST_SYNC, 'is_active' => true],
+    ];
+}
+
+function sf_field_mappings(): array
+{
+    $stored = get_setting('superfuncionario_field_mappings');
+    if ($stored === '') {
+        return sf_default_field_mappings();
+    }
+
+    $decoded = json_decode($stored, true);
+    if (!is_array($decoded)) {
+        return sf_default_field_mappings();
+    }
+
+    return array_values(array_filter(array_map(static function (array $mapping): array {
+        return [
+            'id' => (string)($mapping['id'] ?? ''),
+            'event' => (string)($mapping['event'] ?? SF_EVENT_LEAD_CREATED),
+            'source_key' => (string)($mapping['source_key'] ?? ''),
+            'target_field' => (string)($mapping['target_field'] ?? ''),
+            'is_active' => !empty($mapping['is_active']),
+        ];
+    }, $decoded), static fn(array $mapping): bool => $mapping['id'] !== '' && $mapping['source_key'] !== '' && $mapping['target_field'] !== ''));
+}
+
+function sf_save_field_mappings(array $mappings): void
+{
+    set_setting('superfuncionario_field_mappings', json_encode(array_values($mappings), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]');
+}
+
+function sf_context_value(string $sourceKey, array $context): ?string
+{
+    if ($sourceKey === 'ultima_sincronizacao') {
+        return date('Y-m-d H:i:s');
+    }
+    if ($sourceKey === 'phone' || $sourceKey === 'telefone') {
+        $phone = sf_normalize_phone((string)($context['phone'] ?? $context['telefone'] ?? ''));
+        return $phone === '' ? null : $phone;
+    }
+
+    $value = $context[$sourceKey] ?? null;
+    if ($value === null || is_array($value)) {
+        return null;
+    }
+
+    return (string)$value;
 }
 
 function sf_validate_contact(array $contact, bool $requirePhoneForCreate = false): array
@@ -223,6 +315,13 @@ function sf_sync_contact_event(string $event, array $contact, array $context = [
 {
     $context['event'] = $event;
     $builtContact = sf_build_contact_payload($contact);
+    $context += [
+        'name' => $builtContact['name'] ?? null,
+        'email' => $builtContact['email'] ?? null,
+        'phone' => $builtContact['phone'] ?? null,
+        'cpf' => $builtContact['cpf'] ?? null,
+        'external_id' => $builtContact['external_id'] ?? null,
+    ];
     $tags = array_values(array_unique(array_merge(sf_default_tags_for_event($event, $context), $extraTags)));
     $fields = sf_build_custom_fields($context);
     $leadId = (int)($context['lead_id'] ?? 0);

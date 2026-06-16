@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/superfuncionario.php';
 require_admin();
 
 $pdo = db();
@@ -18,6 +19,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_setting('superfuncionario_timeout', trim((string)($_POST['superfuncionario_timeout'] ?? '10')));
         set_setting('superfuncionario_connect_timeout', trim((string)($_POST['superfuncionario_connect_timeout'] ?? '4')));
         $message = 'Configurações salvas.';
+    }
+
+    if ($action === 'save_sf_mapping') {
+        $mappingId = post_string('mapping_id', 80);
+        $mapping = [
+            'id' => $mappingId !== '' ? $mappingId : 'map_' . bin2hex(random_bytes(8)),
+            'event' => post_string('event', 80) ?: SF_EVENT_LEAD_CREATED,
+            'source_key' => post_string('source_key', 80),
+            'target_field' => post_string('target_field', 120),
+            'is_active' => isset($_POST['is_active']),
+        ];
+
+        if ($mapping['source_key'] !== '' && $mapping['target_field'] !== '') {
+            $mappings = sf_field_mappings();
+            $updated = false;
+            foreach ($mappings as $index => $current) {
+                if ($current['id'] === $mapping['id']) {
+                    $mappings[$index] = $mapping;
+                    $updated = true;
+                    break;
+                }
+            }
+            if (!$updated) {
+                $mappings[] = $mapping;
+            }
+            sf_save_field_mappings($mappings);
+            $message = 'Mapeamento salvo.';
+        } else {
+            $message = 'Informe a variável de origem e o campo do SuperFuncionário.';
+        }
+    }
+
+    if ($action === 'delete_sf_mapping') {
+        $mappingId = post_string('mapping_id', 80);
+        $mappings = array_values(array_filter(sf_field_mappings(), static fn(array $mapping): bool => $mapping['id'] !== $mappingId));
+        sf_save_field_mappings($mappings);
+        $message = 'Mapeamento removido.';
+    }
+
+    if ($action === 'test_sf_mapping') {
+        $stmt = $pdo->query("SELECT l.*, h.title headline_title FROM leads l LEFT JOIN headlines h ON h.id = l.headline_id ORDER BY l.id DESC LIMIT 1");
+        $lead = $stmt->fetch();
+        if ($lead) {
+            $contact = [
+                'lead_id' => (int)$lead['id'],
+                'name' => $lead['name'],
+                'email' => $lead['email'],
+                'phone' => $lead['phone'],
+            ];
+            $context = [
+                'lead_id' => (int)$lead['id'],
+                'user_id' => (int)$lead['id'],
+                'visitor_uuid' => $lead['visitor_uuid'],
+                'headline_id' => $lead['headline_id'],
+                'headline_title' => $lead['headline_title'],
+                'offer_id' => $lead['offer_id'],
+                'offer_name' => $lead['offer_name'],
+                'produto' => $lead['offer_name'],
+                'offer_link' => $lead['offer_link'],
+                'cash_price' => $lead['cash_price'],
+                'installments_qty' => $lead['installments_qty'],
+                'installment_price' => $lead['installment_price'],
+                'data_cadastro' => $lead['created_at'],
+                'origem' => $lead['utm_source'],
+                'utm_source' => $lead['utm_source'],
+                'utm_medium' => $lead['utm_medium'],
+                'utm_campaign' => $lead['utm_campaign'],
+                'utm_content' => $lead['utm_content'],
+                'utm_term' => $lead['utm_term'],
+                'ultimo_evento' => SF_EVENT_LEAD_CREATED,
+            ];
+            $result = sf_sync_contact_event(SF_EVENT_LEAD_CREATED, $contact, $context, ['teste-integracao']);
+            $message = $result['success'] ? 'Teste enviado ao SuperFuncionário com o último lead.' : 'Teste falhou: ' . (string)$result['body'];
+        } else {
+            $message = 'Cadastre pelo menos um lead antes de testar.';
+        }
     }
 
     if ($action === 'save_headline') {
@@ -210,6 +287,8 @@ $superfuncionarioToken = get_setting('superfuncionario_token');
 $superfuncionarioBaseUrl = get_setting('superfuncionario_base_url', 'https://app.superfuncionario.com.br/api');
 $superfuncionarioTimeout = get_setting('superfuncionario_timeout', '10');
 $superfuncionarioConnectTimeout = get_setting('superfuncionario_connect_timeout', '4');
+$superfuncionarioMappings = sf_field_mappings();
+$superfuncionarioSourceOptions = sf_source_options();
 $chartData = [
     'visitsByDay' => $visitsByDay,
     'leadsByDay' => $leadsByDay,
@@ -310,6 +389,73 @@ $chartData = [
                 </label>
                 <button type="submit">Salvar configurações</button>
             </form>
+
+            <div class="settings-block">
+                <h3>Mapeamento de campos</h3>
+                <form method="post" class="inline-form sf-map-form">
+                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                    <input type="hidden" name="action" value="save_sf_mapping">
+                    <input type="hidden" name="event" value="<?= e(SF_EVENT_LEAD_CREATED) ?>">
+                    <label>Ação
+                        <select disabled><option>Novo cadastro</option></select>
+                    </label>
+                    <label>Variável do sistema
+                        <select name="source_key" required>
+                            <?php foreach ($superfuncionarioSourceOptions as $key => $label): ?>
+                                <option value="<?= e($key) ?>"><?= e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label>Campo no SuperFuncionário
+                        <input type="text" name="target_field" placeholder="Ex: status_pagamento" required>
+                    </label>
+                    <label class="check"><input type="checkbox" name="is_active" checked> Ativo</label>
+                    <button type="submit">Adicionar mapeamento</button>
+                </form>
+
+                <form method="post" class="test-form">
+                    <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                    <input type="hidden" name="action" value="test_sf_mapping">
+                    <button type="submit">Testar envio com último lead</button>
+                </form>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Ação</th><th>Variável do sistema</th><th>Campo SuperFuncionário</th><th>Status</th><th>Ações</th></tr></thead>
+                        <tbody>
+                        <?php foreach ($superfuncionarioMappings as $mapping): ?>
+                            <tr>
+                                <td>Novo cadastro</td>
+                                <td>
+                                    <form method="post" class="row-edit-form">
+                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                        <input type="hidden" name="action" value="save_sf_mapping">
+                                        <input type="hidden" name="mapping_id" value="<?= e($mapping['id']) ?>">
+                                        <input type="hidden" name="event" value="<?= e($mapping['event']) ?>">
+                                        <select name="source_key">
+                                            <?php foreach ($superfuncionarioSourceOptions as $key => $label): ?>
+                                                <option value="<?= e($key) ?>" <?= $mapping['source_key'] === $key ? 'selected' : '' ?>><?= e($label) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                </td>
+                                <td><input type="text" name="target_field" value="<?= e($mapping['target_field']) ?>"></td>
+                                <td><label class="check"><input type="checkbox" name="is_active" <?= $mapping['is_active'] ? 'checked' : '' ?>> Ativo</label></td>
+                                <td class="map-actions">
+                                        <button type="submit">Salvar</button>
+                                    </form>
+                                    <form method="post" class="row-actions">
+                                        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                        <input type="hidden" name="action" value="delete_sf_mapping">
+                                        <input type="hidden" name="mapping_id" value="<?= e($mapping['id']) ?>">
+                                        <button type="submit">Apagar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </section>
 
         <section id="headlines" class="panel">
