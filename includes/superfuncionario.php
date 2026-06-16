@@ -46,6 +46,17 @@ function sf_config(string $key, string $default = ''): string
         return trim((string)$value);
     }
 
+    if (str_starts_with($key, 'SUPERFUNCIONARIO_')) {
+        try {
+            $settingValue = get_setting(strtolower($key));
+            if (trim($settingValue) !== '') {
+                return trim($settingValue);
+            }
+        } catch (Throwable $exception) {
+            error_log('Falha ao ler configuração do SuperFuncionário: ' . $exception->getMessage());
+        }
+    }
+
     if (defined($key) && trim((string)constant($key)) !== '') {
         return trim((string)constant($key));
     }

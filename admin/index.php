@@ -13,6 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'save_settings') {
         set_setting('vturb_embed', trim((string)($_POST['vturb_embed'] ?? '')));
+        set_setting('superfuncionario_token', trim((string)($_POST['superfuncionario_token'] ?? '')));
+        set_setting('superfuncionario_base_url', trim((string)($_POST['superfuncionario_base_url'] ?? '')));
+        set_setting('superfuncionario_timeout', trim((string)($_POST['superfuncionario_timeout'] ?? '10')));
+        set_setting('superfuncionario_connect_timeout', trim((string)($_POST['superfuncionario_connect_timeout'] ?? '4')));
         $message = 'Configurações salvas.';
     }
 
@@ -202,6 +206,10 @@ $leads = $stmt->fetchAll();
 
 $webhookLogs = $pdo->query('SELECT * FROM webhook_logs ORDER BY id DESC LIMIT 30')->fetchAll();
 $vturbEmbed = get_setting('vturb_embed');
+$superfuncionarioToken = get_setting('superfuncionario_token');
+$superfuncionarioBaseUrl = get_setting('superfuncionario_base_url', 'https://app.superfuncionario.com.br/api');
+$superfuncionarioTimeout = get_setting('superfuncionario_timeout', '10');
+$superfuncionarioConnectTimeout = get_setting('superfuncionario_connect_timeout', '4');
 $chartData = [
     'visitsByDay' => $visitsByDay,
     'leadsByDay' => $leadsByDay,
@@ -223,7 +231,7 @@ $chartData = [
     <aside class="sidebar">
         <strong>VSL Smart</strong>
         <a href="#metricas">Métricas</a>
-        <a href="#config">Vídeo</a>
+        <a href="#config">Configurações</a>
         <a href="#headlines">Headlines</a>
         <a href="#ofertas">Ofertas</a>
         <a href="#leads">Leads</a>
@@ -280,14 +288,27 @@ $chartData = [
         </section>
 
         <section id="config" class="panel">
-            <h2>Vídeo VSL vTurb</h2>
+            <h2>Configurações</h2>
             <form method="post" class="stack-form">
                 <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                 <input type="hidden" name="action" value="save_settings">
                 <label>Link ou código embed/script do vTurb
                     <textarea name="vturb_embed" rows="6" placeholder="Cole aqui o embed do vTurb ou uma URL"><?= e($vturbEmbed) ?></textarea>
                 </label>
-                <button type="submit">Salvar vídeo</button>
+                <h3>SuperFuncionário</h3>
+                <label>Token da API
+                    <input type="password" name="superfuncionario_token" value="<?= e($superfuncionarioToken) ?>" placeholder="Cole o X-ACCESS-TOKEN do SuperFuncionário" autocomplete="off">
+                </label>
+                <label>Base URL da API
+                    <input type="url" name="superfuncionario_base_url" value="<?= e($superfuncionarioBaseUrl) ?>" placeholder="https://app.superfuncionario.com.br/api">
+                </label>
+                <label>Timeout total em segundos
+                    <input type="number" name="superfuncionario_timeout" value="<?= e($superfuncionarioTimeout) ?>" min="1" max="60">
+                </label>
+                <label>Timeout de conexão em segundos
+                    <input type="number" name="superfuncionario_connect_timeout" value="<?= e($superfuncionarioConnectTimeout) ?>" min="1" max="30">
+                </label>
+                <button type="submit">Salvar configurações</button>
             </form>
         </section>
 

@@ -127,3 +127,10 @@ INSERT INTO settings (setting_key, setting_value, updated_at)
 VALUES ('vturb_embed', '', NOW())
 ON DUPLICATE KEY UPDATE setting_key = setting_key;
 
+INSERT INTO settings (setting_key, setting_value, updated_at)
+VALUES
+  ('superfuncionario_token', '', NOW()),
+  ('superfuncionario_base_url', 'https://app.superfuncionario.com.br/api', NOW()),
+  ('superfuncionario_timeout', '10', NOW()),
+  ('superfuncionario_connect_timeout', '4', NOW())
+ON DUPLICATE KEY UPDATE setting_key = setting_key;
