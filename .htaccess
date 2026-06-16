@@ -1,0 +1,10 @@
+Options -Indexes
+
+<FilesMatch "^(config\.php|db\.php|helpers\.php|auth\.php|webhook\.php)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>
+
