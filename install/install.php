@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit">Gerar hash</button>
         </form>
         <?php if ($hash): ?>
-            <p>Copie este valor para <code>ADMIN_PASS_HASH</code> em <code>includes/config.php</code>:</p>
+            <p>Copie este valor para <code>ADMIN_PASS_HASH</code> em <code>includes/config.local.php</code>:</p>
             <textarea rows="4" readonly><?= e($hash) ?></textarea>
         <?php endif; ?>
     </main>

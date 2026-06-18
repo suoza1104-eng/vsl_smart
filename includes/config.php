@@ -1,22 +1,34 @@
 <?php
 declare(strict_types=1);
 
-define('DEBUG_MODE', true);
+$localConfig = __DIR__ . '/config.local.php';
+if (is_file($localConfig)) {
+    require $localConfig;
+}
 
-define('BASE_URL', 'https://seudominio.com');
+function define_config(string $name, mixed $default): void
+{
+    if (!defined($name)) {
+        define($name, $default);
+    }
+}
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'vsl_smart');
-define('DB_USER', 'usuario_banco');
-define('DB_PASS', 'senha_banco');
-define('DB_CHARSET', 'utf8mb4');
+define_config('DEBUG_MODE', true);
 
-define('ADMIN_USER', 'admin');
+define_config('BASE_URL', 'https://seudominio.com');
+
+define_config('DB_HOST', 'localhost');
+define_config('DB_NAME', 'vsl_smart');
+define_config('DB_USER', 'usuario_banco');
+define_config('DB_PASS', 'senha_banco');
+define_config('DB_CHARSET', 'utf8mb4');
+
+define_config('ADMIN_USER', 'admin');
 // Gere um novo hash em /install/install.php ou usando password_hash('sua-senha', PASSWORD_DEFAULT).
-define('ADMIN_PASS_HASH', '$2y$10$y1JvF415eXBTVUl1ccIre.Rsh0qtMBIA7IQ7I6xJYD54KSDNDur7S'); // admin123
+define_config('ADMIN_PASS_HASH', '$2y$10$y1JvF415eXBTVUl1ccIre.Rsh0qtMBIA7IQ7I6xJYD54KSDNDur7S'); // admin123
 
-define('SUPERFUNCIONARIO_WEBHOOK_URL', '');
-define('SUPERFUNCIONARIO_TOKEN', '');
+define_config('SUPERFUNCIONARIO_WEBHOOK_URL', '');
+define_config('SUPERFUNCIONARIO_TOKEN', '');
 
 if (DEBUG_MODE) {
     ini_set('display_errors', '1');

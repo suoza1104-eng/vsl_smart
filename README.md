@@ -17,16 +17,20 @@ index.php   página pública da VSL
 
 1. Crie um banco MySQL no cPanel.
 2. Crie um usuário do banco e vincule ao banco com todas as permissões.
-3. Edite `includes/config.php`:
+3. Copie `includes/config.local.example.php` para `includes/config.local.php`.
+4. Edite somente `includes/config.local.php`:
    - `BASE_URL`
    - `DB_HOST`
    - `DB_NAME`
    - `DB_USER`
    - `DB_PASS`
    - `SUPERFUNCIONARIO_TOKEN`, token da API do SuperFuncionário
-4. Importe `install/database.sql` pelo phpMyAdmin.
-5. Acesse `/install/install.php`, gere um hash para sua senha admin e substitua `ADMIN_PASS_HASH` em `includes/config.php`.
-6. Remova ou bloqueie a pasta `install` após configurar.
+5. Importe `install/database.sql` pelo phpMyAdmin.
+6. Acesse `/install/install.php`, gere um hash para sua senha admin e substitua `ADMIN_PASS_HASH` em `includes/config.local.php`.
+7. Remova ou bloqueie a pasta `install` após configurar.
+
+`includes/config.local.php` é ignorado pelo Git. Não edite `includes/config.php`
+no servidor: isso evita conflitos no **Update from Remote** do cPanel.
 
 Usuário padrão inicial: `admin`  
 Senha padrão inicial: `admin123`
@@ -92,7 +96,7 @@ sf_sync_contact_event(SF_EVENT_PAYMENT_APPROVED, $contact, $context);
 
 ## Observações de produção
 
-- Defina `DEBUG_MODE` como `false` em `includes/config.php`.
+- Defina `DEBUG_MODE` como `false` em `includes/config.local.php`.
 - Remova `/install` após a instalação.
 - Mantenha PHP 8.1+ com extensão PDO MySQL e cURL habilitadas.
 - O Chart.js é carregado via CDN somente no admin.
