@@ -31,6 +31,8 @@ index.php   página pública da VSL
 
 `includes/config.local.php` é ignorado pelo Git. Não edite `includes/config.php`
 no servidor: isso evita conflitos no **Update from Remote** do cPanel.
+O sistema carrega as configurações por `includes/bootstrap.php`; o
+`includes/config.php` é mantido apenas para compatibilidade com instalações antigas.
 
 Usuário padrão inicial: `admin`  
 Senha padrão inicial: `admin123`
