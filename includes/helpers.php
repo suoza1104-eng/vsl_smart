@@ -46,6 +46,51 @@ function current_user_agent(): string
     return mb_substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500);
 }
 
+function bot_user_agent_pattern(): string
+{
+    return implode('|', [
+        'googlebot', 'bingbot', 'yandexbot', 'baiduspider', 'duckduckbot', 'applebot',
+        'facebookexternalhit', 'facebot', 'twitterbot', 'linkedinbot', 'slackbot',
+        'discordbot', 'telegrambot', 'whatsapp', 'semrushbot', 'ahrefsbot', 'mj12bot',
+        'dotbot', 'petalbot', 'bytespider', 'amazonbot', 'claudebot', 'gptbot',
+        'chatgpt-user', 'oai-searchbot', 'perplexitybot', 'ccbot', 'ia_archiver',
+        'archive.org_bot', 'crawler', 'spider', 'scrapy', 'headlesschrome', 'phantomjs',
+        'selenium', 'playwright', 'puppeteer', 'lighthouse', 'pagespeed', 'gtmetrix',
+        'pingdom', 'uptimerobot', 'statuscake', 'site24x7', 'curl', 'wget',
+        'python-requests', 'python-urllib', 'aiohttp', 'go-http-client', 'libwww-perl',
+        'postmanruntime', 'insomnia', 'nikto', 'sqlmap', 'masscan', 'zgrab', 'censys',
+        'shodan', 'feedfetcher',
+    ]);
+}
+
+function is_probable_bot(?string $userAgent = null): bool
+{
+    $userAgent = trim($userAgent ?? current_user_agent());
+    if ($userAgent === '') {
+        return true;
+    }
+
+    return preg_match('~' . bot_user_agent_pattern() . '~i', $userAgent) === 1;
+}
+
+function should_track_visit(): bool
+{
+    return !isset($_GET['preview']) && !is_probable_bot();
+}
+
+function human_visit_sql(string $alias = ''): array
+{
+    $prefix = $alias !== '' ? rtrim($alias, '.') . '.' : '';
+
+    return [
+        "{$prefix}is_verified = 1",
+        "{$prefix}user_agent IS NOT NULL",
+        "{$prefix}user_agent <> ''",
+        "LOWER({$prefix}user_agent) NOT REGEXP ?",
+        bot_user_agent_pattern(),
+    ];
+}
+
 function device_type(?string $ua = null): string
 {
     $ua = strtolower($ua ?? current_user_agent());
@@ -200,4 +245,3 @@ function money_br($value): string
 {
     return 'R$ ' . number_format((float)$value, 2, ',', '.');
 }
-

@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS visitors (
   ip VARCHAR(45) NULL,
   user_agent VARCHAR(500) NULL,
   device_type VARCHAR(20) NULL,
+  is_verified TINYINT(1) NOT NULL DEFAULT 0,
   utm_source VARCHAR(150) NULL,
   utm_medium VARCHAR(150) NULL,
   utm_campaign VARCHAR(150) NULL,

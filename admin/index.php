@@ -163,6 +163,14 @@ function table_where(array $filters, string $table): array
 {
     $where = [];
     $params = [];
+    if ($table === 'visits') {
+        [$verified, $notNull, $notEmpty, $notBot, $botPattern] = human_visit_sql();
+        $where[] = $verified;
+        $where[] = $notNull;
+        $where[] = $notEmpty;
+        $where[] = $notBot;
+        $params[] = $botPattern;
+    }
     if ($filters['date_start'] !== '') {
         $where[] = 'created_at >= ?';
         $params[] = $filters['date_start'] . ' 00:00:00';
@@ -228,22 +236,27 @@ $visitsByDay = by_day($pdo, 'visits', $filters);
 $leadsByDay = by_day($pdo, 'leads', $filters);
 $clicksByDay = by_day($pdo, 'clicks', $filters);
 
-[$visitWhere, $visitParams] = table_where($filters, 'visits');
+$botPattern = bot_user_agent_pattern();
 $stmt = $pdo->prepare("SELECT h.id, h.title, h.description, h.is_active, h.weight, COUNT(DISTINCT v.id) visits, COUNT(DISTINCT l.id) leads, COUNT(DISTINCT c.id) clicks
     FROM headlines h
     LEFT JOIN visits v ON v.headline_id = h.id
+        AND v.is_verified = 1 AND v.user_agent IS NOT NULL AND v.user_agent <> ''
+        AND LOWER(v.user_agent) NOT REGEXP ?
     LEFT JOIN leads l ON l.headline_id = h.id
     LEFT JOIN clicks c ON c.headline_id = h.id
     GROUP BY h.id ORDER BY h.id DESC");
-$stmt->execute();
+$stmt->execute([$botPattern]);
 $headlinePerf = $stmt->fetchAll();
 
-$stmt = $pdo->query("SELECT o.id, o.name, o.offer_link, o.cash_price, o.installments_qty, o.installment_price, o.description, o.is_active, o.weight, COUNT(DISTINCT v.id) visits, COUNT(DISTINCT l.id) leads, COUNT(DISTINCT c.id) clicks
+$stmt = $pdo->prepare("SELECT o.id, o.name, o.offer_link, o.cash_price, o.installments_qty, o.installment_price, o.description, o.is_active, o.weight, COUNT(DISTINCT v.id) visits, COUNT(DISTINCT l.id) leads, COUNT(DISTINCT c.id) clicks
     FROM offers o
     LEFT JOIN visits v ON v.offer_id = o.id
+        AND v.is_verified = 1 AND v.user_agent IS NOT NULL AND v.user_agent <> ''
+        AND LOWER(v.user_agent) NOT REGEXP ?
     LEFT JOIN leads l ON l.offer_id = o.id
     LEFT JOIN clicks c ON c.offer_id = o.id
     GROUP BY o.id ORDER BY o.id DESC");
+$stmt->execute([$botPattern]);
 $offerPerf = $stmt->fetchAll();
 
 $bestHeadline = '';
@@ -323,7 +336,7 @@ $chartData = [
                 <h1>Dashboard</h1>
                 <p>Acompanhe visitas, leads, cliques e testes.</p>
             </div>
-            <a class="public-link" href="../index.php" target="_blank">Ver VSL</a>
+            <a class="public-link" href="../index.php?preview=1" target="_blank">Ver VSL</a>
         </header>
 
         <?php if ($message): ?><div class="success"><?= e($message) ?></div><?php endif; ?>
@@ -343,8 +356,8 @@ $chartData = [
         </section>
 
         <section id="metricas" class="cards">
-            <div><span>Visitas</span><strong><?= $totalVisits ?></strong></div>
-            <div><span>Visitantes únicos</span><strong><?= $uniqueVisitors ?></strong></div>
+            <div><span>Visitas verificadas</span><strong><?= $totalVisits ?></strong></div>
+            <div><span>Visitantes únicos verificados</span><strong><?= $uniqueVisitors ?></strong></div>
             <div><span>Leads</span><strong><?= $totalLeads ?></strong></div>
             <div><span>Cliques</span><strong><?= $totalClicks ?></strong></div>
             <div><span>Taxa de inscrição</span><strong><?= percent($totalLeads, $totalVisits) ?></strong></div>

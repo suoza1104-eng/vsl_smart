@@ -8,6 +8,14 @@ function stats_where(string $table): array
 {
     $where = [];
     $params = [];
+    if ($table === 'visits') {
+        [$verified, $notNull, $notEmpty, $notBot, $botPattern] = human_visit_sql();
+        $where[] = $verified;
+        $where[] = $notNull;
+        $where[] = $notEmpty;
+        $where[] = $notBot;
+        $params[] = $botPattern;
+    }
     $dateStart = get_string('date_start', 20);
     $dateEnd = get_string('date_end', 20);
     if ($dateStart !== '') {

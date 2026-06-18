@@ -3,32 +3,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/helpers.php';
 
-$visitor = get_or_create_visitor();
+$trackVisit = should_track_visit();
+$visitor = $trackVisit
+    ? get_or_create_visitor()
+    : ['visitor_uuid' => uuid_v4()] + utm_data();
 $headline = active_by_cookie_or_pick('headlines', 'vsl_headline_id');
 $offer = active_by_cookie_or_pick('offers', 'vsl_offer_id');
 $videoEmbed = get_setting('vturb_embed');
-
-$currentUrl = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://')
-    . ($_SERVER['HTTP_HOST'] ?? '')
-    . ($_SERVER['REQUEST_URI'] ?? '');
-$referrer = $_SERVER['HTTP_REFERER'] ?? '';
-
-$stmt = db()->prepare('INSERT INTO visits (visitor_uuid, headline_id, offer_id, url, referrer, ip, user_agent, device_type, utm_source, utm_medium, utm_campaign, utm_content, utm_term, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
-$stmt->execute([
-    $visitor['visitor_uuid'],
-    $headline['id'] ?? null,
-    $offer['id'] ?? null,
-    mb_substr($currentUrl, 0, 800),
-    mb_substr($referrer, 0, 800),
-    current_ip(),
-    current_user_agent(),
-    device_type(),
-    $visitor['utm_source'],
-    $visitor['utm_medium'],
-    $visitor['utm_campaign'],
-    $visitor['utm_content'],
-    $visitor['utm_term'],
-]);
 
 $cashPrice = money_br($offer['cash_price'] ?? 197);
 $installmentsQty = (int)($offer['installments_qty'] ?? 12);
@@ -344,9 +325,10 @@ $installmentPrice = money_br($offer['installment_price'] ?? 19.70);
         window.VSL_SMART = {
             visitorUuid: <?= json_encode($visitor['visitor_uuid']) ?>,
             headlineId: <?= json_encode($headline['id'] ?? null) ?>,
-            offerId: <?= json_encode($offer['id'] ?? null) ?>
+            offerId: <?= json_encode($offer['id'] ?? null) ?>,
+            trackVisit: <?= $trackVisit ? 'true' : 'false' ?>
         };
     </script>
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/app.js?v=<?= e((string)filemtime(__DIR__ . '/assets/js/app.js')) ?>"></script>
 </body>
 </html>

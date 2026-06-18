@@ -30,6 +30,25 @@
         document.body.style.overflow = '';
     }
 
+    function registerVisit() {
+        if (!state.trackVisit || navigator.webdriver) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('url', window.location.href);
+        formData.append('referrer', document.referrer || '');
+
+        fetch('api/visit.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            keepalive: true
+        }).catch(() => {
+            // Métricas não devem interromper a experiência da página.
+        });
+    }
+
     async function registerClick(leadId) {
         const formData = new FormData();
         formData.append('button_id', activeButtonId);
@@ -129,9 +148,13 @@
     });
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', refreshIcons);
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshIcons();
+            registerVisit();
+        });
     } else {
         refreshIcons();
+        registerVisit();
     }
     window.addEventListener('load', refreshIcons);
 })();
